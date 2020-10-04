@@ -10,7 +10,7 @@ weights = utils.weights
 weights_dict = utils.load_weights()
 
 # load the model
-model = keras.models.load_model("neural-network.h5")
+model = keras.models.load_model("./recognizer/neural-network.h5")
 # Set layer weights of the model
 for name in weights:
   if model.get_layer(name) != None:
