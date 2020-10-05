@@ -5,18 +5,29 @@ import glob
 import os
 import cv2
 import numpy as np
-# Load weights from csv files (which was exported from Openface torch model)
-weights = utils.weights
-weights_dict = utils.load_weights()
+import pickle
+from datetime import datetime
 
-# load the model
+# Define variables
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+image_dir = os.path.join(BASE_DIR, "images") 
+
+# Load weights from csv files (which was exported from Openface torch model)
+# weights = utils.weights
+# weights_dict = utils.load_weights()
+
+# load the model, cascade and trainer
 model = keras.models.load_model("./recognizer/neural-network.h5")
+face_cascade = cv2.CascadeClassifier('Cascades/haarcascade_frontalface_default.xml')
+recognizer = cv2.face.LBPHFaceRecognizer_create()
+recognizer.read("./recognizer/face-trainner.yml")
+
 # Set layer weights of the model
-for name in weights:
-  if model.get_layer(name) != None:
-    model.get_layer(name).set_weights(weights_dict[name])
-  elif model.get_layer(name) != None:
-    model.get_layer(name).set_weights(weights_dict[name])
+# for name in weights:
+#   if model.get_layer(name) != None:
+#     model.get_layer(name).set_weights(weights_dict[name])
+#   elif model.get_layer(name) != None:
+#     model.get_layer(name).set_weights(weights_dict[name])
 
 
 def image_to_embedding(image, model):
@@ -56,7 +67,7 @@ def recognize_face(face_image, input_embeddings, model):
 def create_input_image_embeddings():
     input_embeddings = {}
 
-    for file in glob.glob("images/*"):
+    for file in glob.glob("images/"):
         person_name = os.path.splitext(os.path.basename(file))[0]
         image_file = cv2.imread(file, 1)
         input_embeddings[person_name] = image_to_embedding(image_file, model)
@@ -84,10 +95,12 @@ input_embeddings = create_input_image_embeddings()
 cv2.namedWindow("Face Recognizer")
 cap = cv2.VideoCapture(0)
 
-font = cv2.FONT_HERSHEY_SIMPLEX
-face_cascade = cv2.CascadeClassifier('Cascades/haarcascade_frontalface_default.xml')
+labels = {"person_name": 1}
+with open("pickles/face-labels.pickle", 'rb') as f:
+	og_labels = pickle.load(f)
+	labels = {v: k for k, v in og_labels.items()}
 
-while cap.isOpened():
+while (True):
     # Capture frame-by-frame
     ret, frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
