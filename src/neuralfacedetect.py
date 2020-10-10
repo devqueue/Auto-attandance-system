@@ -75,8 +75,6 @@ def create_input_image_embeddings():
     return input_embeddings
 
 
-
-
 def markattendance(name):
     with open('Attendance.csv', 'r+') as f:
         dataList = f.readlines()
