@@ -49,3 +49,6 @@ with open("pickles/face-labels.pickle", 'wb') as f:
 recognizer.train(x_train, np.array(y_labels))
 recognizer.save("recognizer/face-trainner.yml")
 print("Training completed")
+
+
+
