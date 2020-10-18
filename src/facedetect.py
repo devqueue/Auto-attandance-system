@@ -61,10 +61,6 @@ while(True):
             #img_item = "7.png"
             #cv2.imwrite(img_item, roi_color)
 
-            
-    	#subitems = smile_cascade.detectMultiScale(roi_gray)
-    	#for (ex,ey,ew,eh) in subitems:
-    	#	cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
     # Display the resulting frame
     cv2.imshow('Face-detector', frame)
     if cv2.waitKey(20) & 0xFF == ord('q'):
