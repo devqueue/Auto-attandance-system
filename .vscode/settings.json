@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/smokedpirate/.virtualenvs/facerecognition/bin/python3.8",
+    "python.pythonPath": "facerec/bin/python3.8",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.formatting.provider": "yapf"
