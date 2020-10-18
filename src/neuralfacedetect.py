@@ -9,11 +9,18 @@ from datetime import datetime
 
 # Define variables
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-image_dir = os.path.join(BASE_DIR, "images") 
+image_dir = os.path.join(BASE_DIR, "images")
 
 # Load weights from csv files (which was exported from Openface torch model)
-# weights = utils.weights
-# weights_dict = utils.load_weights()
+weights = utils.weights
+weights_dict = utils.load_weights()
+
+# Set layer weights of the model
+for name in weights:
+    if model.get_layer(name) != None:
+        model.get_layer(name).set_weights(weights_dict[name])
+    elif model.get_layer(name) != None:
+        model.get_layer(name).set_weights(weights_dict[name])
 
 # load the model, cascade and trainer
 model = keras.models.load_model("./recognizer/neural-network.h5")
@@ -87,7 +94,7 @@ def markattendance(name):
             day = now.strftime('%a')
             time = now.strftime('%H:%M:%S')
             f.writelines(f'\n{name}, {date}, {time}, {day}')
-        
+
 input_embeddings = create_input_image_embeddings()
 # def recognize_faces_in_cam(input_embeddings):
 
@@ -96,8 +103,8 @@ cap = cv2.VideoCapture(0)
 
 labels = {"person_name": 1}
 with open("pickles/face-labels.pickle", 'rb') as f:
-	og_labels = pickle.load(f)
-	labels = {v: k for k, v in og_labels.items()}
+    og_labels = pickle.load(f)
+    labels = {v: k for k, v in og_labels.items()}
 
 while (True):
     # Capture frame-by-frame
@@ -110,7 +117,7 @@ while (True):
         roi_color = frame[y:y+h, x:x+w]
         #print(w, h)
 
-    	# recognize
+        # recognize
         id_, conf = recognizer.predict(roi_gray)
         if conf >= 4 and conf <= 85:
             font = cv2.FONT_HERSHEY_SIMPLEX

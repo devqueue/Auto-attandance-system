@@ -17,57 +17,10 @@ from keras.layers.merge import Concatenate
 from keras.layers.core import Lambda, Flatten, Dense
 from keras.engine.topology import Layer
 from keras import backend as K
-import cv2
-import os
-import numpy as np
-from PIL import Image
-import pickle
-
+import utils
 
 np.set_printoptions(threshold=sys.maxsize)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-image_dir = os.path.join(BASE_DIR, "images")
 
-face_cascade = cv2.CascadeClassifier('Cascades/haarcascade_frontalface_alt2.xml')
-recognizer = cv2.face.LBPHFaceRecognizer_create()
-
-current_id = 0
-label_ids = {}
-y_labels = []
-x_train = []
-
-for root, dirs, files in os.walk(image_dir):
-	for file in files:
-		if file.endswith("png") or file.endswith("jpg") or file.endswith("jpeg"):
-			path = os.path.join(root, file)
-			label = os.path.basename(root).replace(" ", "-").lower()
-			if not label in label_ids:
-				label_ids[label] = current_id
-				current_id += 1
-			id_ = label_ids[label]
-			#y_labels.append(label) # some number
-			#x_train.append(path) # verify this image, turn into a NUMPY arrray, GRAY
-			pil_image = Image.open(path).convert("L")  # grayscale
-			size = (200, 200)
-			final_image = pil_image.resize(size, Image.ANTIALIAS)
-			image_array = np.array(final_image, "uint8")
-			#print(image_array)
-			faces = face_cascade.detectMultiScale(image_array, scaleFactor=1.5, minNeighbors=5)
-
-			for (x, y, w, h) in faces:
-				roi = image_array[y:y+h, x:x+w]
-				x_train.append(roi)
-				y_labels.append(id_)
-
-#print(y_labels)
-#print(x_train)
-
-with open("pickles/face-labels.pickle", 'wb') as f:
-	pickle.dump(label_ids, f)
-
-recognizer.train(x_train, np.array(y_labels))
-recognizer.save("recognizer/face-trainner.yml")
-print("Training completed")
 
 myInput = Input(shape=(96, 96, 3))
 
@@ -314,11 +267,21 @@ inception_5b = concatenate(
 av_pool = AveragePooling2D(pool_size=(3, 3), strides=(1, 1))(inception_5b)
 reshape_layer = Flatten()(av_pool)
 dense_layer = Dense(128, name='dense_layer')(reshape_layer)
-norm_layer = Lambda(lambda x: K.l2_normalize(x, axis=1), name='norm_layer')(dense_layer)
+norm_layer = Lambda(lambda x: K.l2_normalize(
+    x, axis=1), name='norm_layer')(dense_layer)
+
 
 # Final Model
 model = Model(inputs=[myInput], outputs=norm_layer)
 
-# Saving the model 
-model.save("./recognizer/neural-network.h5")
-print("Model Saved")
+# Load weights from csv files (which was exported from Openface torch model)
+weights = utils.weights
+weights_dict = utils.load_weights()
+
+for name in weights:
+  if model.get_layer(name) != None:
+    model.get_layer(name).set_weights(weights_dict[name])
+  elif model.get_layer(name) != None:
+    model.get_layer(name).set_weights(weights_dict[name])
+
+model.save("neural-network.h5")
